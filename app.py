@@ -10,7 +10,7 @@ co = cohere.Client(COHERE_API_KEY)
 st.title("AI-Powered Job Interview Form & Screening")
 
 # Create tabs
-tab1, tab2 = st.tabs(["Interview Form Generator", "Applicant Screening"])
+tab1, tab2, tab3 = st.tabs(["Interview Form Generator", "Applicant Screening", "Applicant Tracking System (ATS)"])
 
 with tab1:
     st.header("Generate Job Interview Form")
@@ -36,8 +36,9 @@ with tab1:
 with tab2:
     st.header("Applicant Screening")
     uploaded_file = st.file_uploader("Upload Applicant Responses (CSV)", type=["csv"])
+    job_description = st.text_area("Enter Job Description for Screening:")
     
-    if uploaded_file is not None:
+    if uploaded_file is not None and job_description:
         df = pd.read_csv(uploaded_file)
         st.write("Uploaded Data:", df.head())
         
@@ -47,11 +48,40 @@ with tab2:
                 answers = json.dumps(row.to_dict())
                 response = co.generate(
                     model='command',
-                    prompt=f"Evaluate this job application based on the following answers: {answers}",
+                    prompt=f"Evaluate this job application based on the following job description: {job_description} and the applicant's answers: {answers}. Provide a detailed hiring recommendation.",
                     max_tokens=300
                 )
                 evaluation = response.generations[0].text.strip()
                 evaluation_results.append(evaluation)
+            
+            df["Evaluation"] = evaluation_results
+            st.write("Evaluation Results:", df)
+            st.download_button("Download Results", df.to_csv(index=False), file_name="evaluated_applicants.csv")
+
+with tab3:
+    st.header("Applicant Tracking System (ATS)")
+    uploaded_resume = st.file_uploader("Upload Resumes (CSV)", type=["csv"])
+    job_keywords = st.text_area("Enter Key Job Keywords (comma-separated):")
+    
+    if uploaded_resume is not None and job_keywords:
+        df_resumes = pd.read_csv(uploaded_resume)
+        keywords = job_keywords.split(",")
+        
+        match_scores = []
+        for index, row in df_resumes.iterrows():
+            resume_text = json.dumps(row.to_dict())
+            response = co.generate(
+                model='command',
+                prompt=f"Analyze the following resume: {resume_text}. Compare it against these job keywords: {keywords}. Provide a match percentage and a short summary of fit.",
+                max_tokens=300
+            )
+            match_score = response.generations[0].text.strip()
+            match_scores.append(match_score)
+        
+        df_resumes["Match Score"] = match_scores
+        st.write("ATS Results:", df_resumes)
+        st.download_button("Download ATS Results", df_resumes.to_csv(index=False), file_name="ats_results.csv")
+
             
             df["Evaluation"] = evaluation_results
             st.write("Evaluation Results:", df)
