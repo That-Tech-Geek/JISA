@@ -4,7 +4,7 @@ import pandas as pd
 import json
 
 # Initialize Cohere API
-COHERE_API_KEY = st.secrets["API-TOKEN"]  # Replace with your API key
+COHERE_API_KEY = "your_cohere_api_key"  # Replace with your API key
 co = cohere.Client(COHERE_API_KEY)
 
 st.title("AI-Powered Job Interview Form & Screening")
@@ -39,7 +39,7 @@ with tab2:
     job_description = st.text_area("Enter Job Description for Screening:")
     
     if uploaded_file is not None and job_description:
-        df = pd.read_csv(uploaded_file)
+        df = pd.read_csv(uploaded_file, encoding="utf-8")
         st.write("Uploaded Data:", df.head())
         
         if st.button("Evaluate Applications"):
@@ -60,29 +60,27 @@ with tab2:
 
 with tab3:
     st.header("Applicant Tracking System (ATS)")
-    uploaded_resume = st.file_uploader("Upload Resumes (DOCX)", type=["docx"])
+    uploaded_resume = st.file_uploader("Upload Resumes (CSV)", type=["csv"])
     job_keywords = st.text_area("Enter Key Job Keywords (comma-separated):")
     
     if uploaded_resume is not None and job_keywords:
-        df_resumes = pd.read_csv(uploaded_resume)
-        keywords = job_keywords.split(",")
-        
-        match_scores = []
-        for index, row in df_resumes.iterrows():
-            resume_text = json.dumps(row.to_dict())
-            response = co.generate(
-                model='command',
-                prompt=f"Analyze the following resume: {resume_text}. Compare it against these job keywords: {keywords}. Provide a match percentage and a short summary of fit.",
-                max_tokens=300
-            )
-            match_score = response.generations[0].text.strip()
-            match_scores.append(match_score)
-        
-        df_resumes["Match Score"] = match_scores
-        st.write("ATS Results:", df_resumes)
-        st.download_button("Download ATS Results", df_resumes.to_csv(index=False), file_name="ats_results.csv")
-
+        try:
+            df_resumes = pd.read_csv(uploaded_resume, encoding="utf-8")
+            keywords = job_keywords.split(",")
             
-        df["Evaluation"] = evaluation_results
-        st.write("Evaluation Results:", df)
-        st.download_button("Download Results", df.to_csv(index=False), file_name="evaluated_applicants.csv")
+            match_scores = []
+            for index, row in df_resumes.iterrows():
+                resume_text = json.dumps(row.to_dict())
+                response = co.generate(
+                    model='command',
+                    prompt=f"Analyze the following resume: {resume_text}. Compare it against these job keywords: {keywords}. Provide a match percentage and a short summary of fit.",
+                    max_tokens=300
+                )
+                match_score = response.generations[0].text.strip()
+                match_scores.append(match_score)
+            
+            df_resumes["Match Score"] = match_scores
+            st.write("ATS Results:", df_resumes)
+            st.download_button("Download ATS Results", df_resumes.to_csv(index=False), file_name="ats_results.csv")
+        except Exception as e:
+            st.error(f"Error reading file: {e}")
