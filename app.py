@@ -35,7 +35,7 @@ with tab1:
 
 with tab2:
     st.header("Applicant Screening")
-    uploaded_file = st.file_uploader("Upload Applicant Responses (CSV)", type=["csv"])
+    uploaded_file = st.file_uploader("Upload Applicant Responses (DOCX)", type=["docx"])
     job_description = st.text_area("Enter Job Description for Screening:")
     
     if uploaded_file is not None and job_description:
