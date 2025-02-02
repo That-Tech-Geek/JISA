@@ -83,6 +83,6 @@ with tab3:
         st.download_button("Download ATS Results", df_resumes.to_csv(index=False), file_name="ats_results.csv")
 
             
-            df["Evaluation"] = evaluation_results
-            st.write("Evaluation Results:", df)
-            st.download_button("Download Results", df.to_csv(index=False), file_name="evaluated_applicants.csv")
+        df["Evaluation"] = evaluation_results
+        st.write("Evaluation Results:", df)
+        st.download_button("Download Results", df.to_csv(index=False), file_name="evaluated_applicants.csv")
