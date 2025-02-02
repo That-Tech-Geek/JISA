@@ -60,7 +60,7 @@ with tab2:
 
 with tab3:
     st.header("Applicant Tracking System (ATS)")
-    uploaded_resume = st.file_uploader("Upload Resumes (PDF)", type=["pdf"])
+    uploaded_resume = st.file_uploader("Upload Resumes (DOCX)", type=["docx"])
     job_keywords = st.text_area("Enter Key Job Keywords (comma-separated):")
     
     if uploaded_resume is not None and job_keywords:
